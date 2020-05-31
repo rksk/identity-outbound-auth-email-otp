@@ -190,7 +190,7 @@ public class EmailOTPAuthenticator extends OpenIDConnectAuthenticator implements
                 for (StepConfig stepConfig : stepConfigMap.values()) {
                     authenticatedUser = stepConfig.getAuthenticatedUser();
                     if (authenticatedUser != null && stepConfig.isSubjectAttributeStep()) {
-                        username = authenticatedUser.toFullQualifiedUsername();
+                        username = authenticatedUser.getUserName();
                         if (stepConfig.getAuthenticatedIdP().equals(EmailOTPAuthenticatorConstants
                                 .LOCAL_AUTHENTICATOR)) {
                             isLocalUser = true;
@@ -352,12 +352,12 @@ public class EmailOTPAuthenticator extends OpenIDConnectAuthenticator implements
                                          AuthenticatedUser authenticatedUser) throws AuthenticationFailedException {
 
         String[] savedOTPs = null;
-        String username = authenticatedUser.toFullQualifiedUsername()
+        String username = authenticatedUser.getUserName();
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
         UserRealm userRealm = getUserRealm(username);
         try {
             if (userRealm == null) {
-                throw new AuthenticationFailedException("UserRealm is null for user : " + username);
+                throw new AuthenticationFailedException("UserRealm is null for user : " + authenticatedUser.getUserName());
             }
             UserStoreManager userStoreManager = userRealm.getUserStoreManager();
             if (userStoreManager != null) {
@@ -381,7 +381,7 @@ public class EmailOTPAuthenticator extends OpenIDConnectAuthenticator implements
             }
             if (isBackUpCodeValid(savedOTPs, userToken)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Found saved backup Email OTP for user :" + username);
+                    log.debug("Found saved backup Email OTP for user :" + authenticatedUser.getUserName());
                 }
                 context.setSubject(authenticatedUser);
                 savedOTPs = (String[]) ArrayUtils.removeElement(savedOTPs, userToken);
@@ -403,7 +403,7 @@ public class EmailOTPAuthenticator extends OpenIDConnectAuthenticator implements
             }
         } catch (UserStoreException e) {
             throw new AuthenticationFailedException("Cannot find the user claim for OTP list for user : " +
-                    username, e);
+                    authenticatedUser.getUserName(), e);
         }
     }
 
